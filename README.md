@@ -18,7 +18,7 @@ def test_verbose_raises():
     except ValueError:
         assert True, 'what a graceful failure!'
     except:
-        assert False, 'this is not the graceful failure we were looking for'
+        assert False, 'this is not the graceful failure you were looking for'
     else:
         assert False, 'success is just another form of failure'
 ```
@@ -255,3 +255,103 @@ E       KeyError: 1
 test_xfail/test_1.py:20: KeyError
 ===================== 1 failed, 3 xfailed in 0.13 seconds ======================
 ```
+
+
+Test Fixtures
+-------------
+Test fixtures create the proper state for tests to run under, e.g. by
+establishing a connection to a database, or to a hardware device, and
+performing any necessary setup.  Fixtures are implemented as functions
+decorated with `pytest.fixture`.  The name of the function plays an
+important role on how this work, so choose a unique, memorable one!
+
+```python
+import pytest
+
+@pytext.fixture
+def i_set_things_up():
+    projector = {'status': 'doing fine',
+                 'flashing': "dicts can't flash!"}
+    return projector
+```
+
+To use this fixture within a test, we have to pass it as a parameter to
+the test *with the exact same name as the fixture function*.
+
+```
+def test_fixture_contents(i_set_things_up):
+    assert i_set_things_up['status'] == 'doing fine'
+```
+
+By default, the fixture gets run before every test function, so that
+each test receives a fresh instance of the fixture, untainted by other
+tests wrongdoings.
+
+```python
+def test_try_to_break_the_fixture_1(i_set_things_up):
+    del i_set_things_up['flashing']
+
+def test_try_to_break_the_fixture_2(i_set_things_up):
+    assert i_set_things_up['flashing'] == "dicts can't flash!"
+```
+
+While the default fixture lifetime is a single test function call, they
+can also be defined to be shared within a module (i.e. a *.py file), a
+class (a pattern we are not using), or even a session (i.e. over all
+*.py files discovered by py.test).  You can define it by passing a
+`scope` keyword argument to the fixture decorator.
+
+```python
+@pytest.fixture(scope='module')
+def i_also_set_things_up():
+    projector = {'status': 'doing fine',
+                 'flashing': "dicts can't flash!"}
+    return projector
+```
+
+But you now have to be careful that your tests do not affect the state
+of the shared fixture!  The second of this tests will fail as a result
+of having run the first one:
+
+```python
+def test_try_to_break_the_module_fixture_1(i_also_set_things_up):
+    del i_also_set_things_up['flashing']
+
+def test_try_to_break_the_module_fixture_2(i_also_set_things_up):
+    assert i_also_set_things_up['flashing'] == "dicts can't flash!"
+```
+
+All these examples are in the `test_1.py` file under the `test_fixtures`
+folder.  Running them produces this output:
+
+```
+py.test -v test_fixtures/
+============================= test session starts ==============================
+platform darwin -- Python 2.7.10, pytest-2.8.0, py-1.4.30, pluggy-0.3.1 -- /Users/jaimefrio/miniconda/envs/numpydev/bin/python
+cachedir: test_fixtures/.cache
+rootdir: /Users/jaimefrio/open_source/pytest_sampler/test_fixtures, inifile:
+collected 5 items
+
+test_fixtures/test_1.py::test_fixture_contents PASSED
+test_fixtures/test_1.py::test_try_to_break_the_fixture_1 PASSED
+test_fixtures/test_1.py::test_try_to_break_the_fixture_2 PASSED
+test_fixtures/test_1.py::test_try_to_break_the_module_fixture_1 PASSED
+test_fixtures/test_1.py::test_try_to_break_the_module_fixture_2 FAILED
+
+=================================== FAILURES ===================================
+____________________ test_try_to_break_the_module_fixture_2 ____________________
+
+i_also_set_things_up = {'status': 'doing fine'}
+
+    def test_try_to_break_the_module_fixture_2(i_also_set_things_up):
+>       assert i_also_set_things_up['flashing'] == "dicts can't flash!"
+E       KeyError: 'flashing'
+
+test_fixtures/test_1.py:28: KeyError
+====================== 1 failed, 4 passed in 0.01 seconds ======================
+```
+
+
+Test Fixture Finalizers
+-----------------------
+Often times a test fixture will need some cleaning up

@@ -6,7 +6,7 @@ def test_verbose_raises():
     except ValueError:
         assert True, 'what a graceful failure!'
     except:
-        assert False, 'this is not the graceful failure we were looking for'
+        assert False, 'this is not the graceful failure you were looking for'
     else:
         assert False, 'success is just another form of failure'
 
