@@ -354,4 +354,23 @@ test_fixtures/test_1.py:28: KeyError
 
 Test Fixture Finalizers
 -----------------------
-Often times a test fixture will need some cleaning up
+Often times a test fixture will need some cleaning up after the test (or
+tests, depending on the scope) completes.  You can do this by adding a
+`request` parameter to the fixture, and calling the passed in object's
+`addfinalizer` method.
+
+```python
+import pytest
+
+@pytest.fixture
+def i_set_things_up(request):
+    projector = {'status': 'doing fine',
+                 'flashing': "dicts can't flash!"}
+    def fin():
+        projector['status'] = 'torn down by finalizer!'
+    request.addfinalizer(fin)
+    return projector
+
+def test_nothing(i_set_things_up):
+    assert i_set_things_up['status'] == 'doing fine'
+```
