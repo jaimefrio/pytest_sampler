@@ -50,6 +50,67 @@ Function count_to_n took 3.30e-02s.
 Decorators are used in many places by py.test, to alter the behavior of
 test functions in several ways.
 
+Testing for Exceptions
+----------------------
+You sometimes want to test not that your code suceeds, but that it fails
+gracefully, or at least as expected.  You could write a more or less
+cumbersome test using `try` that did something like:
+
+```python
+def test_verbose_raises():
+    try:
+        raise ValueError('I am a graceful failure')
+    except ValueError:
+        assert True, 'what a graceful failure!'
+    except:
+        assert False, 'this is not the graceful failure we were looking for'
+    else:
+        assert False, 'success is just another form of failure'
+```
+
+That is a lot of writing for a simple test, so pytest provides a context
+manager, that encapsulates similar logic:
+
+```python
+import pytest
+
+def test_succint_raises():
+    with pytest.raises(ValueError):
+        raise ValueError('I am a graceful failure')
+```
+
+If you care not only about the exception type, but want to also verify
+e.g. the error message, you can get access to the exception object from
+the context manager:
+
+```python
+def test_succint_raises_graceful():
+    with pytest.raises(ValueError) as exception_info:
+        raise ValueError('I am a graceful failure')
+    assert 'graceful' in str(exception_info.value), 'the failure was graceful'
+```
+
+The relevant attributes of the exception object returned by the context
+manager are `type`, `value` and `traceback`.
+
+These examples are collected in file `test_1.py` in folder `test_raises`,
+here is a sample run of those examples:
+
+```
+py.test -v test_raises/
+============================= test session starts ==============================
+platform darwin -- Python 2.7.10, pytest-2.8.0, py-1.4.30, pluggy-0.3.1 -- /Users/jaimefrio/miniconda/envs/numpydev/bin/python
+cachedir: test_raises/.cache
+rootdir: /Users/jaimefrio/open_source/pytest_sampler/test_raises, inifile:
+collected 3 items
+
+test_raises/test_1.py::test_verbose_raises PASSED
+test_raises/test_1.py::test_succint_raises PASSED
+test_raises/test_1.py::test_succint_raises_graceful PASSED
+
+=========================== 3 passed in 0.01 seconds ===========================
+```
+
 
 Skipping Tests
 --------------
