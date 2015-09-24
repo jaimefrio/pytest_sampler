@@ -47,7 +47,7 @@ Function count_to_n took 5.51e-05s.
 Function count_to_n took 3.30e-02s.
 ```
 
-Decorators are used in many place by py.test, to alter the behavior of
+Decorators are used in many places by py.test, to alter the behavior of
 test functions in several ways.
 
 
@@ -116,4 +116,77 @@ test_skipif/test_1.py::test_yet_another_skipped_test SKIPPED
 test_skipif/test_1.py::test_skipping_halfway_through SKIPPED
 
 ===================== 1 passed, 4 skipped in 0.01 seconds ======================
+```
+
+Marking Tests as Expected Failures
+----------------------------------
+Similarly to `pytest.mark.skipif` there also is `pytest.mark.xfail` to
+identify tests know to be failing.  This is typically used to keep tests
+for known bugs around without messing up reporting until you get around
+to fix them.  Since we fix bugs before writing new functionality, this
+should not be the most used of features.  Notice that, by default,
+`xfail` marked tests still get run, but the error is not reported as a
+test failure.
+
+`xfail` can also be parametrized with:
+ * a boolean expression, e.g. to only mark a test as expected failure on
+   Windows but not Linux,
+ * a `reason` keyword argument, just like skipif,
+ * a `run` keyword argument, which if `False` will prevent the test from
+   being run altogether, and
+ * a `raises` keyword argument, which takes an exception type, and will
+   only mark the test as expected failure if it raises that particular
+   exception.
+
+```python
+import pytest
+
+@pytest.mark.xfail
+def test_i_will_fail():
+    assert False, 'I told you I was going to fail'
+
+@pytest.mark.xfail(run=False)
+def test_i_will_break_things_big_time():
+    print('Use this to not run e.g. tests that segfault')
+
+@pytest.mark.xfail(raises=IndexError)
+def test_moronic_list_access():
+    a = []
+    assert a[1] == 5
+
+@pytest.mark.xfail(raises=IndexError)
+def test_moronic_dict_access():
+    a = {}
+    # dict access raises KeyError, not IndexError
+    assert a[1] == 5
+```
+
+The above example is in file `test_1.py` inside the `test_xfail` folder,
+running those tests we get the following output:
+
+```
+py.test -v test_xfail
+============================= test session starts ==============================
+platform darwin -- Python 2.7.10, pytest-2.8.0, py-1.4.30, pluggy-0.3.1 -- /Users/jaimefrio/miniconda/envs/numpydev/bin/python
+cachedir: test_xfail/.cache
+rootdir: /Users/jaimefrio/open_source/pytest_sampler/test_xfail, inifile:
+collected 4 items
+
+test_xfail/test_1.py::test_i_will_fail xfail
+test_xfail/test_1.py::test_i_will_break_things_big_time xfail
+test_xfail/test_1.py::test_moronic_list_access xfail
+test_xfail/test_1.py::test_moronic_dict_access FAILED
+
+=================================== FAILURES ===================================
+___________________________ test_moronic_dict_access ___________________________
+
+    @pytest.mark.xfail(raises=IndexError)
+    def test_moronic_dict_access():
+        a = {}
+        # dict access raises KeyError, not IndexError
+>       assert a[1] == 5
+E       KeyError: 1
+
+test_xfail/test_1.py:20: KeyError
+===================== 1 failed, 3 xfailed in 0.13 seconds ======================
 ```
