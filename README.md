@@ -10,7 +10,7 @@ In Python, a function decorator is a function that takes a function as
 input, and returns another function.  They are typically used to expand
 the functionality of other functions.  For instance:
 
-```
+```python
 import time
 
 def timer(func):
@@ -30,7 +30,7 @@ def count_to_n(n):
 
 The *decorated* `count_to_n` is equivalent to writing:
 
-```
+```python
 def count_to_n(n):
     for j in range(n):
         pass
@@ -56,7 +56,7 @@ Skipping Tests
 `pytest.mark.skipif` is a function decorator that can be used to mark
 tests to be skipped:
 
-```
+```python
 import pytest
 
 @pytest.mark.skipif
@@ -71,7 +71,7 @@ argument taking a string that explains, well the reason for skipping the
 test.  Both arguments are optional, with the default behavior being to
 skip the test:
 
-```
+```python
 @pytest.mark.skipif(True, reason='testing skip works')
 def test_i_am_being_skipped():
     print('Nothing to see here, I am being skipped')
@@ -91,7 +91,7 @@ FW version of a device you only connect to during the test.  You can
 also skip tests from within, a.k.a. imperative skipping, by calling the
 function `pytest.skip`:
 
-```
+```python
 def test_skipping_halfway_through():
     print('This code will be run...')
     pytest.skip('trying imperative skipping out')
