@@ -1,54 +1,9 @@
-# pytest_sampler
+# Tentative `py.test` Tutorial
 
 
 
 
-Function Decorators
--------------------
 
-In Python, a function decorator is a function that takes a function as
-input, and returns another function.  They are typically used to expand
-the functionality of other functions.  For instance:
-
-```python
-import time
-
-def timer(func):
-    def timed_func(*args, **kwargs):
-        t = time.time()
-        ret = func(*args, **kwargs)
-        print('Function {} took {:.2e}s.'.format(func.__name__,
-                                                 time.time() - t))
-        return ret
-    return timed_func
-
-@timer
-def count_to_n(n):
-    for j in range(n):
-        pass
-```
-
-The *decorated* `count_to_n` is equivalent to writing:
-
-```python
-def count_to_n(n):
-    for j in range(n):
-        pass
-
-count_to_n = timer(count_to_n)
-```
-
-Either way, we can now run things like:
-
-```
->>> count_to_n(1000)
-Function count_to_n took 5.51e-05s.
->>> count_to_n(1000000)
-Function count_to_n took 3.30e-02s.
-```
-
-Decorators are used in many places by py.test, to alter the behavior of
-test functions in several ways.
 
 Testing for Exceptions
 ----------------------
@@ -110,6 +65,54 @@ test_raises/test_1.py::test_succint_raises_graceful PASSED
 
 =========================== 3 passed in 0.01 seconds ===========================
 ```
+
+
+Function Decorators
+-------------------
+
+In Python, a function decorator is a function that takes a function as
+input, and returns another function.  They are typically used to expand
+the functionality of other functions.  For instance:
+
+```python
+import time
+
+def timer(func):
+    def timed_func(*args, **kwargs):
+        t = time.time()
+        ret = func(*args, **kwargs)
+        print('Function {} took {:.2e}s.'.format(func.__name__,
+                                                 time.time() - t))
+        return ret
+    return timed_func
+
+@timer
+def count_to_n(n):
+    for j in range(n):
+        pass
+```
+
+The *decorated* `count_to_n` is equivalent to writing:
+
+```python
+def count_to_n(n):
+    for j in range(n):
+        pass
+
+count_to_n = timer(count_to_n)
+```
+
+Either way, we can now run things like:
+
+```
+>>> count_to_n(1000)
+Function count_to_n took 5.51e-05s.
+>>> count_to_n(1000000)
+Function count_to_n took 3.30e-02s.
+```
+
+Decorators are used in many places by py.test, to alter the behavior of
+test functions in several ways, as we will soon see.
 
 
 Skipping Tests
@@ -178,6 +181,7 @@ test_skipif/test_1.py::test_skipping_halfway_through SKIPPED
 
 ===================== 1 passed, 4 skipped in 0.01 seconds ======================
 ```
+
 
 Marking Tests as Expected Failures
 ----------------------------------
